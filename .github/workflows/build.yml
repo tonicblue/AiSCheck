@@ -1,11 +1,15 @@
 name: Build APK
 
-# Runs on every push to main, and can also be triggered by hand
+# Runs on every push to master, and can also be triggered by hand
 # from the Actions tab (the "Run workflow" button).
 on:
   push:
     branches: [ master ]
   workflow_dispatch:
+
+# Needed so the job can create a Release and upload the APK to it.
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -37,12 +41,44 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      # Version scheme:
+      #   VERSION_CODE = run number (unique, always increasing -> Android upgrades cleanly)
+      #   VERSION_NAME = 1.0.<run number>  (human-readable)
+      - name: Compute version
+        id: version
+        run: |
+          echo "code=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          echo "name=1.0.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
       - name: Build debug APK
+        env:
+          VERSION_CODE: ${{ steps.version.outputs.code }}
+          VERSION_NAME: ${{ steps.version.outputs.name }}
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Upload APK
+      - name: Rename APK with version
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk \
+             "dist/AiSCheck-v${{ steps.version.outputs.name }}.apk"
+
+      # Keep the artifact too, so it's downloadable even on manual runs.
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AiSCheck-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: AiSCheck-v${{ steps.version.outputs.name }}
+          path: dist/AiSCheck-v${{ steps.version.outputs.name }}.apk
           if-no-file-found: error
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ steps.version.outputs.name }}
+          name: AiSCheck v${{ steps.version.outputs.name }}
+          body: |
+            Automated build.
+            - Version name: ${{ steps.version.outputs.name }}
+            - Version code: ${{ steps.version.outputs.code }}
+            - Commit: ${{ github.sha }}
+          files: dist/AiSCheck-v${{ steps.version.outputs.name }}.apk
+          make_latest: true

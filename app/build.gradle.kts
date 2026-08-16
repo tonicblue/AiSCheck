@@ -11,8 +11,10 @@ android {
         applicationId = "com.aischeck.app"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        // Version is injected by CI (see .github/workflows/build.yml).
+        // Falls back to 1 / "1.0.0-dev" for local builds.
+        versionCode = (System.getenv("VERSION_CODE") ?: "1").toInt()
+        versionName = System.getenv("VERSION_NAME") ?: "1.0.0-dev"
     }
 
     buildTypes {
@@ -42,5 +44,4 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.9.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-    
 }
