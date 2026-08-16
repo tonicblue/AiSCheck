@@ -6,3 +6,28 @@
 /app/build
 /captures
 .DS_Store
+
+# Native build intermediates
+.cxx/
+.externalNativeBuild/
+
+# Generated Java/Kotlin sources and class files
+bin/
+gen/
+out/
+*.class
+
+# Build outputs (built by CI, not committed)
+*.apk
+*.aab
+*.aar
+*.ap_
+*.dex
+
+# Log files
+*.log
+
+# Signing keys and credentials - never commit these
+*.jks
+*.keystore
+keystore.properties

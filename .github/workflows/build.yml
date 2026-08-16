@@ -1,10 +1,10 @@
 name: Build APK
 
-# Runs on every push to master, and can also be triggered by hand
+# Runs on every push to main, and can also be triggered by hand
 # from the Actions tab (the "Run workflow" button).
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   workflow_dispatch:
 
 # Needed so the job can create a Release and upload the APK to it.
